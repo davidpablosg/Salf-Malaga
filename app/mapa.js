@@ -72,7 +72,6 @@ app.innerHTML = `
           <p class="hint" style="margin-bottom:6px">Paleta</p>
           <div class="ramps" id="ramps"></div>
         </div>
-        <label class="check"><input type="checkbox" id="invert"> Invertir colores</label>
         <label class="check"><input type="checkbox" id="dlines" checked> Marcar límites de distrito</label>
         <label class="check"><input type="checkbox" id="streets" checked> Mostrar calles</label>
         <label class="check"><input type="checkbox" id="names" checked> Mostrar nombres de calles</label>
@@ -310,6 +309,7 @@ if (loaded && loaded.t) {
     });
     valIdx = pcts;
   }
+  valIdx.sort((a,b) => /salf/i.test(table.cols[b]) - /salf/i.test(table.cols[a]));  
   $('valCol').innerHTML = valIdx.map(i => `<option value="${i}">${esc(nombreCorto(table.cols[i]))}</option>`).join('');
   const iSalf = valIdx.find(i => /salf/i.test(table.cols[i]));
   if (iSalf !== undefined) $('valCol').value = iSalf;
@@ -318,7 +318,7 @@ if (loaded && loaded.t) {
 }
 
 // ---------- dibujo ----------
-const ramp = () => { const r=[...RAMPS[rampKey]]; return $('invert').checked ? r.reverse() : r; };
+const ramp = () => RAMPS[rampKey];
 const spread = (r,n) => Array.from({length:n}, (_,i) => r[Math.round(i*(r.length-1)/(n-1||1))]);
 function render(){
   let vals={}, label='Distrito', srcTxt='Sin datos: color por distrito', sinPol=[];
@@ -373,7 +373,7 @@ function render(){
 
 $('ramps').innerHTML = Object.entries(RAMPS).map(([k,r]) => `<button class="ramp" type="button" data-k="${k}" aria-label="Paleta ${k}" aria-pressed="${k===rampKey}">${r.map(c => `<span style="background:${c}"></span>`).join('')}</button>`).join('');
 $('ramps').addEventListener('click', e => { const b=e.target.closest('.ramp'); if (!b) return; rampKey=b.dataset.k; document.querySelectorAll('.ramp').forEach(x => x.setAttribute('aria-pressed', x===b)); render(); });
-['valCol','mode','invert','dlines'].forEach(id => $(id).addEventListener('change', render));
+['valCol','mode','dlines'].forEach(id => $(id).addEventListener('change', render));
 $('breaks').addEventListener('input', render);
 
 // El corte fijo del 3 % solo tiene sentido para SALF: con PP o Vox se vuelve a la escala automática
