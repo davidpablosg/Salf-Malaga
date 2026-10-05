@@ -109,24 +109,7 @@ button.ghost{background:transparent;color:var(--accent)}
 
     <aside>
       <div class="panel">
-        <h2>1 · Tus datos</h2>
-        <div class="row">
-          <label class="filebtn">Abrir Excel o CSV<input type="file" id="file" accept=".xlsx,.xls,.csv,.txt"></label>
-          <button class="ghost" id="copyTpl" type="button">Copiar plantilla</button>
-        </div>
-        <label for="paste">O pega aquí las columnas copiadas de Excel
-          <textarea id="paste" placeholder="cod_seccion&#9;valor&#10;2906901001&#9;12,5&#10;2906901002&#9;8"></textarea>
-        </label>
-        <p class="hint">Necesita una columna con el código de sección de 10 dígitos (<code>2906901001</code>) o de 5 (<code>01001</code> = distrito + sección). Vale el CSV de Málaga que descargaste.</p>
-        <p class="warn" id="msg" hidden></p>
-      </div>
-
-      <div class="panel">
-        <h2>2 · Qué pintar</h2>
-        <label for="codeCol">Columna con el código
-          <select id="codeCol"></select></label>
-        <label for="valCol">Columna con el valor
-          <select id="valCol"></select></label>
+        <h2>Visualizar datos</h2>
         <label for="mode">Tipo de escala
           <select id="mode">
             <option value="auto">Automático</option>
