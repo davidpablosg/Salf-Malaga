@@ -18,10 +18,9 @@ const RAMPS = {
 };
 const CATS = ['#1f6e85','#e08a3c','#5a9e5a','#b8526b','#8a6bbf','#c9a227','#4fa3a5','#9b6b43','#6c7a89','#d36f9e','#2e5e4e','#a3a948'];
 let rampKey = 'rojoverde';
-
 // Municipios con pocas secciones: en vez de 5 tramos, un único corte fijo (3 %).
 // Se puede cambiar aquí, o por localidad con data-umbral="…" en su index.html.
-const POCAS_SECCIONES = 15;
+const POCAS_SECCIONES = 7;
 const UMBRAL = document.body.dataset.umbral || '3';
 
 // ---------- esqueleto de la página ----------
@@ -228,7 +227,22 @@ svg.addEventListener('mousemove', e => {
   if (ptrs.size) return;
   const t = e.target.closest('path[data-id]'); if (!t) { tip.hidden=true; return; }
   const id=t.dataset.id, info=paths[id], v=current[id];
-  tip.innerHTML = `<b>${id}</b><br>Distrito ${info.d} · Sección ${info.s}<br>${esc(current.__label||'Valor')}: <strong>${v===undefined||v===''?'sin dato':esc(fmt(v))}</strong>`;
+  // Ficha: cada partido con su % y sus votos; el que se está pintando, en negrita
+  let filas = `${esc(current.__label||'Valor')}: <strong>${v===undefined||v===''?'sin dato':esc(fmt(v))}</strong>`;
+  if (table) {
+    const row = table.rows.find(r => normCode(r[codeIdx]) === id);
+    if (row) {
+      const sel = +$('valCol').value;
+      filas = [...$('valCol').options].map(o => +o.value).map(i => {
+        const val = row[i]===''||row[i]==null ? 'sin dato' : esc(fmt(row[i])) + (pctCols.has(i) ? ' %' : '');
+        const vi = votosDe[i];
+        const votos = vi!==undefined && row[vi]!=='' && row[vi]!=null ? ` · ${esc(fmt(row[vi]))} votos` : '';
+        const txt = `${esc(nombreCorto(table.cols[i]))}: ${val}${votos}`;
+        return i===sel ? `<strong>${txt}</strong>` : txt;
+      }).join('<br>');
+    }
+  }
+  tip.innerHTML = `<b>${id}</b><br>Distrito ${info.d} · Sección ${info.s}<br>${filas}`;
   const box = svg.closest('.mapcard').getBoundingClientRect();
   let x=e.clientX-box.left+14, y=e.clientY-box.top+14;
   tip.hidden=false;
@@ -251,7 +265,7 @@ function parseText(txt){
   const lines = txt.replace(/\r/g,'').split('\n').filter(l => l.trim());
   if (!lines.length) return null;
   const sep = lines[0].includes('\t') ? '\t' : (lines[0].split(';').length >= lines[0].split(',').length ? ';' : ',');
-  return toTable(lines.map(l => l.split(sep).map(c => c.trim().replace(/^"|"$/g,'').replace(/^﻿/,''))));
+  return toTable(lines.map(l => l.split(sep).map(c => c.trim().replace(/^"|"$/g,'').replace(/^\ufeff/,''))));
 }
 function toTable(rows){
   const cols = rows[0].map((c,i) => String(c||'').trim() || ('Columna '+(i+1)));
@@ -273,14 +287,32 @@ async function loadData(){
   return null;
 }
 let codeIdx = -1, src = '';
+const pctCols = new Set(), votosDe = {};
+// "PP 2026 (%)" -> "pp 2026"; "pct_PP_2026" -> "pp 2026"
+const clave = s => String(s).toLowerCase().replace(/\(%\)|%|pct_?/g,'').replace(/_/g,' ').replace(/\s+/g,' ').trim();
+const nombreCorto = s => String(s).replace(/\s*\(%\)\s*$/,'').replace(/^pct_/i,'').replace(/_/g,' ');
 const SKIP = /^(cod|cusec|seccion|sección|distrito|municipio|nombre_distrito|cod_mun)/i;
 const loaded = await loadData();
 if (loaded && loaded.t) {
   table = loaded.t; src = loaded.src;
   codeIdx = table.cols.findIndex(c => /cod.?secc|cusec/i.test(c));
   if (codeIdx < 0) codeIdx = table.cols.findIndex((_,i) => table.rows.some(r => normCode(r[i])));
-  const valIdx = table.cols.map((c,i) => i).filter(i => i!==codeIdx && !SKIP.test(table.cols[i]) && table.rows.some(r => r[i]!=='' && r[i]!=null));
-  $('valCol').innerHTML = valIdx.map(i => `<option value="${i}">${esc(table.cols[i])}</option>`).join('');
+  let valIdx = table.cols.map((c,i) => i).filter(i => i!==codeIdx && !SKIP.test(table.cols[i]) && table.rows.some(r => r[i]!=='' && r[i]!=null));
+  // Se pinta por % de voto: si hay columnas con "%" o "pct" en el nombre, solo esas son seleccionables.
+  // Las de votos ("Votos X") se muestran en la ficha junto a su %.
+  const pcts = valIdx.filter(i => /%|pct/i.test(table.cols[i]));
+  if (pcts.length) {
+    pcts.forEach(i => {
+      pctCols.add(i);
+      const base = clave(table.cols[i]);
+      const vi = table.cols.findIndex(c => /^votos\b/i.test(c) && clave(c.replace(/^votos\s*/i,'')) === base);
+      if (vi >= 0) votosDe[i] = vi;
+    });
+    valIdx = pcts;
+  }
+  $('valCol').innerHTML = valIdx.map(i => `<option value="${i}">${esc(nombreCorto(table.cols[i]))}</option>`).join('');
+  const iSalf = valIdx.find(i => /salf/i.test(table.cols[i]));
+  if (iSalf !== undefined) $('valCol').value = iSalf;
   $('valWrap').hidden = valIdx.length < 2;
   if (!valIdx.length) table = null;
 }
@@ -344,10 +376,15 @@ $('ramps').addEventListener('click', e => { const b=e.target.closest('.ramp'); i
 ['valCol','mode','invert','dlines'].forEach(id => $(id).addEventListener('change', render));
 $('breaks').addEventListener('input', render);
 
-if (table && SECC.length < POCAS_SECCIONES) {
-  $('mode').value = 'breaks';
-  $('breaks').value = UMBRAL;
+// El corte fijo del 3 % solo tiene sentido para SALF: con PP o Vox se vuelve a la escala automática
+function aplicarUmbral(){
+  if (!table || SECC.length >= POCAS_SECCIONES) return;
+  const col = table.cols[+$('valCol').value] || '';
+  if (/salf/i.test(col)) { $('mode').value = 'breaks'; $('breaks').value = UMBRAL; }
+  else $('mode').value = 'auto';
 }
+$('valCol').addEventListener('change', () => { aplicarUmbral(); render(); });
+aplicarUmbral();
 setVB();
 render();
 })();
