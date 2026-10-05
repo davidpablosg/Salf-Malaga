@@ -1,0 +1,92 @@
+[
+ {
+  "cod": "29025",
+  "nombre": "Benalmádena",
+  "slug": "benalmadena",
+  "secciones": 37
+ },
+ {
+  "cod": "29041",
+  "nombre": "Casares",
+  "slug": "casares",
+  "secciones": 4
+ },
+ {
+  "cod": "29051",
+  "nombre": "Estepona",
+  "slug": "estepona",
+  "secciones": 38
+ },
+ {
+  "cod": "29054",
+  "nombre": "Fuengirola",
+  "slug": "fuengirola",
+  "secciones": 40
+ },
+ {
+  "cod": "29067",
+  "nombre": "Málaga",
+  "slug": "malaga",
+  "secciones": 441
+ },
+ {
+  "cod": "29068",
+  "nombre": "Manilva",
+  "slug": "manilva",
+  "secciones": 7
+ },
+ {
+  "cod": "29069",
+  "nombre": "Marbella",
+  "slug": "marbella",
+  "secciones": 79
+ },
+ {
+  "cod": "29070",
+  "nombre": "Mijas",
+  "slug": "mijas",
+  "secciones": 41
+ },
+ {
+  "cod": "29075",
+  "nombre": "Nerja",
+  "slug": "nerja",
+  "secciones": 10
+ },
+ {
+  "cod": "29082",
+  "nombre": "Rincón de la Victoria",
+  "slug": "rincon-de-la-victoria",
+  "secciones": 29
+ },
+ {
+  "cod": "29084",
+  "nombre": "Ronda",
+  "slug": "ronda",
+  "secciones": 26
+ },
+ {
+  "cod": "29901",
+  "nombre": "Torremolinos",
+  "slug": "torremolinos",
+  "secciones": 43
+ },
+ {
+  "cod": "29091",
+  "nombre": "Torrox",
+  "slug": "torrox",
+  "secciones": 8
+ },
+ {
+  "cod": "29092",
+  "nombre": "Totalán",
+  "slug": "totalan",
+  "secciones": 1
+ },
+ {
+  "cod": "29094",
+  "nombre": "Vélez-Málaga",
+  "slug": "velez-malaga",
+  "secciones": 50
+ }
+]
