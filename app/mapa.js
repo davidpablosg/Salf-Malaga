@@ -313,7 +313,7 @@ if (loaded && loaded.t) {
   $('valCol').innerHTML = valIdx.map(i => `<option value="${i}">${esc(nombreCorto(table.cols[i]))}</option>`).join('');
   const iSalf = valIdx.find(i => /salf/i.test(table.cols[i]));
   if (iSalf !== undefined) $('valCol').value = iSalf;
-  $('valWrap').hidden = valIdx.length < 2;
+  $('valWrap').hidden = true;
   if (!valIdx.length) table = null;
 }
 
