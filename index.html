@@ -110,6 +110,14 @@ button.ghost{background:transparent;color:var(--accent)}
     <aside>
       <div class="panel">
         <h2>Visualizar datos</h2>
+        <div hidden>
+          <input type="file" id="file" accept=".xlsx,.xls,.csv,.txt">
+          <button id="copyTpl" type="button">Copiar plantilla</button>
+          <textarea id="paste"></textarea>
+          <select id="codeCol"></select>
+          <select id="valCol"></select>
+        </div>
+        <p class="warn" id="msg" hidden></p>
         <label for="mode">Tipo de escala
           <select id="mode">
             <option value="auto">Automático</option>
