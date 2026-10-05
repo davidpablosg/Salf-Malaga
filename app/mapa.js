@@ -19,6 +19,11 @@ const RAMPS = {
 const CATS = ['#1f6e85','#e08a3c','#5a9e5a','#b8526b','#8a6bbf','#c9a227','#4fa3a5','#9b6b43','#6c7a89','#d36f9e','#2e5e4e','#a3a948'];
 let rampKey = 'rojoverde';
 
+// Municipios con pocas secciones: en vez de 5 tramos, un único corte fijo (3 %).
+// Se puede cambiar aquí, o por localidad con data-umbral="…" en su index.html.
+const POCAS_SECCIONES = 15;
+const UMBRAL = document.body.dataset.umbral || '3';
+
 // ---------- esqueleto de la página ----------
 app.innerHTML = `
 <div class="wrap">
@@ -339,6 +344,10 @@ $('ramps').addEventListener('click', e => { const b=e.target.closest('.ramp'); i
 ['valCol','mode','invert','dlines'].forEach(id => $(id).addEventListener('change', render));
 $('breaks').addEventListener('input', render);
 
+if (table && SECC.length < POCAS_SECCIONES) {
+  $('mode').value = 'breaks';
+  $('breaks').value = UMBRAL;
+}
 setVB();
 render();
 })();
