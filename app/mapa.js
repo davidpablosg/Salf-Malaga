@@ -55,6 +55,11 @@ app.innerHTML = `
     <aside>
       <div class="panel">
         <h2>Visualizar datos</h2>
+          <label for="elecSel">Elecciones
+             <select id="elecSel">
+               <option value="and">Andaluzas 2026</option>
+               <option value="eu">Europeas 2024</option>
+             </select></label>
         <label for="valCol" id="valWrap" hidden>Dato a pintar
           <select id="valCol"></select></label>
         <label for="mode">Tipo de escala
@@ -226,19 +231,22 @@ svg.addEventListener('mousemove', e => {
   if (ptrs.size) return;
   const t = e.target.closest('path[data-id]'); if (!t) { tip.hidden=true; return; }
   const id=t.dataset.id, info=paths[id], v=current[id];
-  // Ficha: cada partido con su % y sus votos; el que se está pintando, en negrita
+  // Ficha: los tres partidos de la elección elegida (SALF primero) y debajo SALF en la otra elección
   let filas = `${esc(current.__label||'Valor')}: <strong>${v===undefined||v===''?'sin dato':esc(fmt(v))}</strong>`;
   if (table) {
     const row = table.rows.find(r => normCode(r[codeIdx]) === id);
     if (row) {
-      const sel = +$('valCol').value;
-      filas = [...$('valCol').options].map(o => +o.value).map(i => {
-        const val = row[i]===''||row[i]==null ? 'sin dato' : esc(fmt(row[i])) + (pctCols.has(i) ? ' %' : '');
+      const linea = (i, negrita) => {
+        const val = row[i]===''||row[i]==null ? 'sin dato' : esc(fmt(row[i])) + ' %';
         const vi = votosDe[i];
         const votos = vi!==undefined && row[vi]!=='' && row[vi]!=null ? ` · ${esc(fmt(row[vi]))} votos` : '';
-        const txt = `${esc(nombreCorto(table.cols[i]))}: ${val}${votos}`;
-        return i===sel ? `<strong>${txt}</strong>` : txt;
-      }).join('<br>');
+        const txt = `${esc(partido(table.cols[i]))}: ${val}${votos}`;
+        return negrita ? `<strong>${txt}</strong>` : txt;
+      };
+      const el = ELECCIONES[$('elecSel').value], otra = ELECCIONES[el.otra];
+      filas = `<em>${el.nombre}</em><br>` + columnasDe(el).map((i,n) => linea(i, n===0)).join('<br>');
+      const salfOtra = columnasDe(otra)[0];
+      if (salfOtra !== undefined) filas += `<br><em>${otra.nombre}</em><br>` + linea(salfOtra, false);
     }
   }
   tip.innerHTML = `<b>${id}</b><br>Distrito ${info.d} · Sección ${info.s}<br>${filas}`;
@@ -290,6 +298,13 @@ const pctCols = new Set(), votosDe = {};
 // "PP 2026 (%)" -> "pp 2026"; "pct_PP_2026" -> "pp 2026"
 const clave = s => String(s).toLowerCase().replace(/\(%\)|%|pct_?/g,'').replace(/_/g,' ').replace(/\s+/g,' ').trim();
 const nombreCorto = s => String(s).replace(/\s*\(%\)\s*$/,'').replace(/^pct_/i,'').replace(/_/g,' ');
+// Elecciones: se reconocen por el nombre de la columna ("SALF 2026 (%)" = andaluzas, "SALF EU 2024 (%)" = europeas)
+const ELECCIONES = {
+  and: { nombre: 'Andaluzas 2026', test: c => /2026/.test(c) && !/\bEU\b/i.test(c), otra: 'eu' },
+  eu:  { nombre: 'Europeas 2024',  test: c => /\bEU\b/i.test(c), otra: 'and' }
+};
+const columnasDe = el => [...$('valCol').options].map(o => +o.value).filter(i => el.test(table.cols[i]));
+const partido = c => nombreCorto(c).replace(/\s*\bEU\b/i,'').replace(/\s*20\d\d\s*/,' ').trim();
 const SKIP = /^(cod|cusec|seccion|sección|distrito|municipio|nombre_distrito|cod_mun)/i;
 const loaded = await loadData();
 if (loaded && loaded.t) {
@@ -323,7 +338,7 @@ const spread = (r,n) => Array.from({length:n}, (_,i) => r[Math.round(i*(r.length
 function render(){
   let vals={}, label='Distrito', srcTxt='Sin datos: color por distrito', sinPol=[];
   if (table) {
-    const vi = +$('valCol').value; label = table.cols[vi];
+    const vi = +$('valCol').value; label = `${partido(table.cols[vi])} · ${ELECCIONES[$('elecSel').value].nombre} (%)`;
     let n=0;
     table.rows.forEach(r => { const c=normCode(r[codeIdx]); if (!c || !c.startsWith(MUN)) return;
       if (paths[c]) { if (r[vi]!=='' && r[vi]!=null) { vals[c]=r[vi]; n++; } } else if (r[vi]!=='' && r[vi]!=null) sinPol.push(c); });
@@ -376,7 +391,15 @@ $('ramps').addEventListener('click', e => { const b=e.target.closest('.ramp'); i
 ['valCol','mode','dlines'].forEach(id => $(id).addEventListener('change', render));
 $('breaks').addEventListener('input', render);
 
-// El corte fijo del 3 % solo tiene sentido para SALF: con PP o Vox se vuelve a la escala automática
+// Selector de elecciones: pinta siempre el % de SALF de la elección elegida
+function elegirEleccion(){
+  if (!table) return;
+  const i = columnasDe(ELECCIONES[$('elecSel').value])[0];
+  if (i !== undefined) $('valCol').value = i;
+}
+$('elecSel').closest('label').hidden = !table || !columnasDe(ELECCIONES.eu).length;
+$('elecSel').addEventListener('change', () => { elegirEleccion(); aplicarUmbral(); render(); });
+elegirEleccion();
 function aplicarUmbral(){
   if (!table || SECC.length >= POCAS_SECCIONES) return;
   const col = table.cols[+$('valCol').value] || '';
