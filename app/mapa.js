@@ -245,8 +245,8 @@ svg.addEventListener('mousemove', e => {
       };
       const el = ELECCIONES[$('elecSel').value], otra = ELECCIONES[el.otra];
       filas = `<em>${el.nombre}</em><br>` + columnasDe(el).map((i,n) => linea(i, n===0)).join('<br>');
-      const salfOtra = columnasDe(otra)[0];
-      if (salfOtra !== undefined) filas += `<br><br><em>${otra.nombre}</em><br>` + linea(salfOtra, false);
+      const colsOtra = columnasDe(otra);
+      if (colsOtra.length) filas += `<br><br><em>${otra.nombre}</em><br>` + colsOtra.map((i,n) => linea(i, n===0)).join('<br>');
     }
   }
   tip.innerHTML = `<b>${id}</b><br>Distrito ${info.d} · Sección ${info.s}<br><br>${filas}`;
