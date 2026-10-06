@@ -42,7 +42,8 @@ svg#map .dline{fill:none;stroke:var(--fg);stroke-width:1.6;opacity:.55;pointer-e
 .legend .sw{display:inline-flex;align-items:center;gap:6px}
 .legend i{width:14px;height:14px;border-radius:3px;display:inline-block;border:1px solid var(--line)}
 .legend .lt{font-weight:600;margin-right:4px}
-.tip{position:absolute;pointer-events:none;background:#ffffff;color:#1a1a1a;border:1px solid #d7e0e1;padding:8px 10px;border-radius:6px;font-size:.8rem;line-height:1.35;max-width:240px;z-index:3;box-shadow:0 4px 14px rgb(0 0 0 / .15)}
+.tip{position:absolute;pointer-events:none;background:#ffffff;color:#1a1a1a;border:1px solid #d7e0e1;padding:8px 10px;border-radius:6px;font-size:.8rem;line-height:1.35;max-width:270px;z-index:3;box-shadow:0 4px 14px rgb(0 0 0 / .15)}
+.tip .tot{color:#5d6f73}
 .tip b{font-family:var(--mono);font-weight:500}
 aside{display:grid;gap:16px;min-width:0}
 .panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;display:grid;gap:10px;min-width:0}
