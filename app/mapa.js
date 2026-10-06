@@ -243,10 +243,10 @@ svg.addEventListener('mousemove', e => {
         const txt = `${esc(partido(table.cols[i]))}: ${val}${votos}`;
         return negrita ? `<strong>${txt}</strong>` : txt;
       };
-      const el = ELECCIONES[$('elecSel').value], otra = ELECCIONES[el.otra];
-      filas = `<em>${el.nombre}</em><br>` + columnasDe(el).map((i,n) => linea(i, n===0)).join('<br>');
+      const kEl = $('elecSel').value, el = ELECCIONES[kEl], otra = ELECCIONES[el.otra];
+      filas = `<em>${el.nombre}</em><br>` + columnasDe(el).map((i,n) => linea(i, n===0)).join('<br>') + totales(kEl, row);
       const colsOtra = columnasDe(otra);
-      if (colsOtra.length) filas += `<br><br><em>${otra.nombre}</em><br>` + colsOtra.map((i,n) => linea(i, n===0)).join('<br>');
+      if (colsOtra.length) filas += `<br><br><em>${otra.nombre}</em><br>` + colsOtra.map((i,n) => linea(i, n===0)).join('<br>') + totales(el.otra, row);
     }
   }
   tip.innerHTML = `<b>${id}</b><br>Distrito ${info.d} · Sección ${info.s}<br><br>${filas}`;
@@ -305,6 +305,23 @@ const ELECCIONES = {
 };
 const columnasDe = el => [...$('valCol').options].map(o => +o.value).filter(i => el.test(table.cols[i]));
 const partido = c => nombreCorto(c).replace(/\s*\bEU\b/i,'').replace(/\s*20\d\d\s*/,' ').trim();
+// Totales de cada elección para la ficha (se buscan por el nombre exacto de la columna en datos.csv)
+const dato = (row, nombre) => { const i = table.cols.indexOf(nombre); return i < 0 || row[i] === '' || row[i] == null ? null : row[i]; };
+function totales(clave, row){
+  const L = [];
+  if (clave === 'and') {
+    const v = dato(row, 'Votos válidos 2026'), p = dato(row, 'Participación 2026'), c = dato(row, 'Censo 2026');
+    const vt = p != null && c != null ? Math.round(num(c) * num(p) / 100) : null;   // votantes = censo × participación
+    if (v != null) L.push(`Votos válidos: ${esc(fmt(v))}`);
+    if (p != null) L.push(`Participación: ${esc(fmt(p))} %` + (vt != null && c != null ? ` (${esc(fmt(vt))} de ${esc(fmt(c))})` : ''));
+  } else {
+    const v = dato(row, 'Votos válidos EU 2024'), c = dato(row, 'Censo EU 2024'), p = dato(row, 'Participación EU 2024');
+    const vt = p != null && c != null ? Math.round(num(c) * num(p) / 100) : null;   // votantes = censo × participación
+    if (v != null) L.push(`Votos válidos: ${esc(fmt(v))}`);
+    if (p != null) L.push(`Participación: ${esc(fmt(p))} %` + (vt != null && c != null ? ` (${esc(fmt(vt))} de ${esc(fmt(c))})` : ''));
+  }
+  return L.length ? '<br><span class="tot">' + L.join('<br>') + '</span>' : '';
+}
 const SKIP = /^(cod|cusec|seccion|sección|distrito|municipio|nombre_distrito|cod_mun)/i;
 const loaded = await loadData();
 if (loaded && loaded.t) {
