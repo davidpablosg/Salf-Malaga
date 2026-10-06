@@ -246,10 +246,10 @@ svg.addEventListener('mousemove', e => {
       const el = ELECCIONES[$('elecSel').value], otra = ELECCIONES[el.otra];
       filas = `<em>${el.nombre}</em><br>` + columnasDe(el).map((i,n) => linea(i, n===0)).join('<br>');
       const salfOtra = columnasDe(otra)[0];
-      if (salfOtra !== undefined) filas += `<br><em>${otra.nombre}</em><br>` + linea(salfOtra, false);
+      if (salfOtra !== undefined) filas += `<br><br><em>${otra.nombre}</em><br>` + linea(salfOtra, false);
     }
   }
-  tip.innerHTML = `<b>${id}</b><br>Distrito ${info.d} · Sección ${info.s}<br>${filas}`;
+  tip.innerHTML = `<b>${id}</b><br>Distrito ${info.d} · Sección ${info.s}<br><br>${filas}`;
   const box = svg.closest('.mapcard').getBoundingClientRect();
   let x=e.clientX-box.left+14, y=e.clientY-box.top+14;
   tip.hidden=false;
